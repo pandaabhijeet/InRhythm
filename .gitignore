@@ -19,7 +19,7 @@ target/
 *.iml
 *.ipr
 
-spotifySecrets.properties
+Initializer/src/main/resources/spotifySecrets.properties
 
 ### NetBeans ###
 /nbproject/private/
