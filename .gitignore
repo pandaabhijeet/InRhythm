@@ -19,6 +19,8 @@ target/
 *.iml
 *.ipr
 
+spotifySecrets.properties
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
