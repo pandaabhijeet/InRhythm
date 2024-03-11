@@ -1,6 +1,8 @@
 package com.inrhythm.Initializer.controller;
 
+import com.inrhythm.Initializer.services.SpotifyTokenAccessService;
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,13 +15,24 @@ public class SpotifyTokenAccessController {
     @Value("${spotify.clientSecret}")
     private String spotifyClientSecret;
 
-    @PostConstruct
-    @GetMapping("/access")
-    public String getSpotifyAccessToken() {
-        System.out.println("Spotify Client ID: " + spotifyClientId);
-        System.out.println("Spotify Client Secret: " + spotifyClientSecret);
+    @Value("${spotify.tokenUrl}")
+    private String spotifyTokenUrl;
 
-        return "Spotify client id : "+spotifyClientId + " Spotify client secret: "+spotifyClientSecret;
+    @Autowired
+    private SpotifyTokenAccessService spotifyTokenAccessService;
+
+    @PostConstruct
+    @GetMapping("/token")
+    public String getSpotifyAccessToken() {
+
+        String token = "";
+
+        try {
+            token = spotifyTokenAccessService.getToken(spotifyClientId, spotifyClientSecret, spotifyTokenUrl);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        return token;
     }
 
 
