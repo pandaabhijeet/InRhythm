@@ -21,7 +21,6 @@ public class SpotifyTokenAccessController {
     @Autowired
     private SpotifyTokenAccessService spotifyTokenAccessService;
 
-    @PostConstruct
     @GetMapping("/token")
     public String getSpotifyAccessToken() {
 

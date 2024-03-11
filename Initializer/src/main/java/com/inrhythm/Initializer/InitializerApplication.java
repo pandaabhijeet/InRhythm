@@ -8,6 +8,6 @@ public class InitializerApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(InitializerApplication.class, args);
-		SpotifyTokenAccessController accessController = new SpotifyTokenAccessController();
+		//SpotifyTokenAccessController accessController = new SpotifyTokenAccessController();
 	}
 }
