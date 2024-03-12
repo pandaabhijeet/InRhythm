@@ -2,6 +2,8 @@ package com.inrhythm.Initializer.services;
 
 
 import com.inrhythm.Initializer.models.SpotifyTokenResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -17,10 +19,15 @@ import java.util.Objects;
 
 @Service
 public class SpotifyTokenAccessService {
+
+    public static final Logger logger = LoggerFactory.getLogger(SpotifyTokenAccessService.class);
     public String getToken(String spotifyClientId, String spotifyClientSecret, String spotifyTokenUrl) {
         System.out.println("Spotify Client ID: " + spotifyClientId);
         System.out.println("Spotify Client Secret: " + spotifyClientSecret);
         System.out.println("Spotify Client Secret: " + spotifyTokenUrl);
+
+        logger.info("Spotify Client ID: " + spotifyClientId);
+
 
         RestTemplate restTemplate = new RestTemplate();
 
