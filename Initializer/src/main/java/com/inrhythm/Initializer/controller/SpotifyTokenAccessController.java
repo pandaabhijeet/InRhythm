@@ -30,7 +30,7 @@ public class SpotifyTokenAccessController {
 
         try {
             logger.info("Setting get mapping for Spotify token access.");
-            token = spotifyTokenAccessService.getToken(spotifyClientId, spotifyClientSecret, spotifyTokenUrl);
+//            token = spotifyTokenAccessService.getToken(spotifyClientId, spotifyClientSecret, spotifyTokenUrl);
         } catch (Exception e) {
             logger.error(e.getMessage());
             throw e;

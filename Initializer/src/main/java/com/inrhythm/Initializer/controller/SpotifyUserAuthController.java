@@ -9,9 +9,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.view.RedirectView;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 
@@ -22,6 +24,8 @@ public class SpotifyUserAuthController {
     private String spotifyClientId;
     @Value("${spotify.clientSecret}")
     private String spotifyClientSecret;
+    @Value("${spotify.tokenUrl}")
+    private String spotifyTokenUrl;
 
     public static final Logger logger = LoggerFactory.getLogger(SpotifyTokenAccessService.class);
 
@@ -39,10 +43,49 @@ public class SpotifyUserAuthController {
                                 "&client_id=" + spotifyClientId +
                                 "&scope=" + ApiPathConstants.SPOTIFY_SCOPE +
                                 "&redirect_uri=" + ApiPathConstants.REDIRECT_URI +
-                                "&state=" + state;
+                                "&state=" + state +
+                                "&show_dialog=true";
 
         logger.info("SpotifyAuthUrl for this session : " + spotifyAuthUrl);
 
         return new RedirectView(spotifyAuthUrl);
+    }
+
+    @GetMapping("/callback")
+    public String callback(@RequestParam("code") String code, @RequestParam("state") String state, HttpSession session) {
+
+        logger.error("Handling Spotify callback now");
+        String sessionState = (String) session.getAttribute("SPOTIFY_STATE");
+        if (!state.equals(sessionState)) {
+
+            logger.error("Session State mismatch : " + sessionState);
+            return "redirect:/error";
+
+        }
+
+        logger.info("User login permission granted.");
+        logger.info("Initiating token access request from Spotify.");
+
+        SpotifyTokenAccessService spotifyTokenAccessService = new SpotifyTokenAccessService();
+
+        try{
+            spotifyTokenAccessService.getToken(spotifyClientId, spotifyClientSecret, spotifyTokenUrl, code);
+        }catch (Exception exception){
+
+            logger.error(Arrays.toString(exception.getStackTrace()));
+            throw exception;
+        }
+
+        return "redirect:/success";
+    }
+
+    @GetMapping("/success")
+    public String success() {
+        return "success"; // Redirect to a success page
+    }
+
+    @GetMapping("/error")
+    public String error() {
+        return "error"; // Redirect to an error page
     }
 }

@@ -1,6 +1,7 @@
 package com.inrhythm.Initializer.services;
 
 
+import com.inrhythm.Initializer.constants.ApiPathConstants;
 import com.inrhythm.Initializer.exceptions.NullTokenException;
 import com.inrhythm.Initializer.models.SpotifyTokenResponse;
 import org.slf4j.Logger;
@@ -23,7 +24,7 @@ public class SpotifyTokenAccessService {
 
     public static final Logger logger = LoggerFactory.getLogger(SpotifyTokenAccessService.class);
 
-    public String getToken(String spotifyClientId, String spotifyClientSecret, String spotifyTokenUrl) {
+    public String getToken(String spotifyClientId, String spotifyClientSecret, String spotifyTokenUrl, String code) {
         System.out.println("Spotify Client ID: " + spotifyClientId);
         System.out.println("Spotify Client Secret: " + spotifyClientSecret);
         System.out.println("Spotify Client Secret: " + spotifyTokenUrl);
@@ -42,7 +43,9 @@ public class SpotifyTokenAccessService {
         httpHeaders.set("Authorization", "Basic " + base64Credentials);
 
         MultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
-        requestParams.add("grant_type", "client_credentials");
+        requestParams.add("grant_type", "authorization_code");
+        requestParams.add("code" , code);
+        requestParams.add("redirect_uri" , ApiPathConstants.REDIRECT_URI);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(requestParams, httpHeaders);
 

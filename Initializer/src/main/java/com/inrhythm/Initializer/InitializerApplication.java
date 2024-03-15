@@ -25,9 +25,4 @@ public class InitializerApplication {
 		return "Welcome! Login to Spotify : " + "<a href=\"" + loginUrl + "\">" + "Spotify" + "</a>";
 	}
 
-//	@GetMapping("/login")
-//	public String login(){
-//		return "Welcome! Login to Spotify : ";
-//	}
-
 }
