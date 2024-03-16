@@ -41,7 +41,7 @@ public class SpotifyUserAuthController {
         String spotifyAuthUrl = ApiPathConstants.SPOTIFY_AUTH_URL +
                                 "?response_type=code"+
                                 "&client_id=" + spotifyClientId +
-                                "&scope=" + ApiPathConstants.SPOTIFY_SCOPE +
+                                "&scope=" + ApiPathConstants.SPOTIFY_USER_SCOPES +
                                 "&redirect_uri=" + ApiPathConstants.REDIRECT_URI +
                                 "&state=" + state +
                                 "&show_dialog=true";
@@ -54,7 +54,7 @@ public class SpotifyUserAuthController {
     @GetMapping("/callback")
     public String callback(@RequestParam("code") String code, @RequestParam("state") String state, HttpSession session) {
 
-        logger.error("Handling Spotify callback now");
+        logger.info("Handling Spotify callback now");
         String sessionState = (String) session.getAttribute("SPOTIFY_STATE");
         if (!state.equals(sessionState)) {
 

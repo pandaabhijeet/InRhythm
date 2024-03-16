@@ -54,6 +54,13 @@ public class SpotifyTokenAccessService {
             ResponseEntity<SpotifyTokenResponse> spotifyTokenResponse = restTemplate.postForEntity(spotifyTokenUrl, request, SpotifyTokenResponse.class);
             System.out.println("SpotifyToken :" + Objects.requireNonNull(spotifyTokenResponse.getBody()).getAccess_token());
 
+            logger.info(spotifyTokenResponse.getBody().toString());
+            logger.info(spotifyTokenResponse.getBody().getAccess_token());
+            logger.info(spotifyTokenResponse.getBody().getToken_type());
+            logger.info(spotifyTokenResponse.getBody().getRefresh_token());
+            logger.info(spotifyTokenResponse.getBody().getScope());
+            logger.info(spotifyTokenResponse.getBody().getExpires_in().toString());
+
             if (spotifyTokenResponse.getBody().getAccess_token() != null) {
                 logger.info("Spotify token fetched successfully. . .");
                 return spotifyTokenResponse.getBody().getAccess_token();

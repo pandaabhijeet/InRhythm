@@ -1,38 +1,27 @@
 package com.inrhythm.Initializer.models;
 
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class SpotifyTokenResponse {
 
+    @JsonProperty("access_token")
     private String access_token;
+    @JsonProperty("token_type")
     private String token_type;
-    private String expires_in;
+    @JsonProperty("expires_in")
+    private Long expires_in;
+    @JsonProperty("refresh_token")
+    private String refresh_token;
+    @JsonProperty("scope")
+    private String scope;
 
-    public SpotifyTokenResponse(String access_token, String token_type, String expires_in) {
-        this.access_token = access_token;
-        this.token_type = token_type;
-        this.expires_in = expires_in;
-    }
-
-    public String getAccess_token() {
-        return access_token;
-    }
-
-    public void setAccess_token(String access_token) {
-        this.access_token = access_token;
-    }
-
-    public String getToken_type() {
-        return token_type;
-    }
-
-    public void setToken_type(String token_type) {
-        this.token_type = token_type;
-    }
-
-    public String getExpires_in() {
-        return expires_in;
-    }
-
-    public void setExpires_in(String expires_in) {
-        this.expires_in = expires_in;
-    }
 }
