@@ -1,8 +1,7 @@
 package com.inrhythm.Initializer.controller;
 
 import com.inrhythm.Initializer.constants.ApiPathConstants;
-import com.inrhythm.Initializer.enums.ApiPaths;
-import com.inrhythm.Initializer.services.SpotifyTokenAccessService;
+import com.inrhythm.Initializer.services.SpotifyUserAuthService;
 import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +26,7 @@ public class SpotifyUserAuthController {
     @Value("${spotify.tokenUrl}")
     private String spotifyTokenUrl;
 
-    public static final Logger logger = LoggerFactory.getLogger(SpotifyTokenAccessService.class);
+    public static final Logger logger = LoggerFactory.getLogger(SpotifyUserAuthService.class);
 
     //SPOTIFY_LOGIN=/login
     @GetMapping(value = ApiPathConstants.SPOTIFY_LOGIN, produces = MediaType.TEXT_HTML_VALUE)
@@ -66,17 +65,20 @@ public class SpotifyUserAuthController {
         logger.info("User login permission granted.");
         logger.info("Initiating token access request from Spotify.");
 
-        SpotifyTokenAccessService spotifyTokenAccessService = new SpotifyTokenAccessService();
+        SpotifyUserAuthService spotifyTokenAccessService = new SpotifyUserAuthService();
 
         try{
             spotifyTokenAccessService.getToken(spotifyClientId, spotifyClientSecret, spotifyTokenUrl, code);
+            session.setAttribute("ACCESS_TOKEN", state);
         }catch (Exception exception){
 
             logger.error(Arrays.toString(exception.getStackTrace()));
             throw exception;
         }
 
-        return "redirect:/success";
+        String profileUrl = "http://localhost:8080/profile";
+        return "Welcome! Login to Spotify : " + "<a href=\"" + profileUrl + "\">" + "Spotify" + "</a>";
+        //return "redirect:/success";
     }
 
     @GetMapping("/success")

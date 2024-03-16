@@ -20,9 +20,9 @@ import java.util.Base64;
 import java.util.Objects;
 
 @Service
-public class SpotifyTokenAccessService {
+public class SpotifyUserAuthService {
 
-    public static final Logger logger = LoggerFactory.getLogger(SpotifyTokenAccessService.class);
+    public static final Logger logger = LoggerFactory.getLogger(SpotifyUserAuthService.class);
 
     public String getToken(String spotifyClientId, String spotifyClientSecret, String spotifyTokenUrl, String code) {
         System.out.println("Spotify Client ID: " + spotifyClientId);

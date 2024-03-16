@@ -1,5 +1,4 @@
 package com.inrhythm.Initializer;
-import com.inrhythm.Initializer.controller.SpotifyTokenAccessController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
