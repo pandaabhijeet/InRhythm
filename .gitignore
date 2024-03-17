@@ -20,6 +20,7 @@ target/
 *.ipr
 
 */src/main/resources/spotifySecrets.properties
+*.log
 
 ### NetBeans ###
 /nbproject/private/
