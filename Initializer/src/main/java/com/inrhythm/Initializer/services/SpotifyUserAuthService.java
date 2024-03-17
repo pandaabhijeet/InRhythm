@@ -4,6 +4,7 @@ package com.inrhythm.Initializer.services;
 import com.inrhythm.Initializer.constants.ApiPathConstants;
 import com.inrhythm.Initializer.exceptions.NullTokenException;
 import com.inrhythm.Initializer.models.SpotifyTokenResponse;
+import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -24,22 +25,19 @@ public class SpotifyUserAuthService {
 
     public static final Logger logger = LoggerFactory.getLogger(SpotifyUserAuthService.class);
 
-    public String getToken(String spotifyClientId, String spotifyClientSecret, String spotifyTokenUrl, String code) {
-        System.out.println("Spotify Client ID: " + spotifyClientId);
-        System.out.println("Spotify Client Secret: " + spotifyClientSecret);
-        System.out.println("Spotify Client Secret: " + spotifyTokenUrl);
+    public SpotifyTokenResponse getToken(String spotifyClientId, String spotifyClientSecret, String spotifyTokenUrl, String code) {
 
         logger.info("Spotify Client ID: " + spotifyClientId);
 
-
         RestTemplate restTemplate = new RestTemplate();
 
+        //setting headers' content type
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
+        //setting headers' authorization value
         String authCredentials = spotifyClientId + ":" + spotifyClientSecret;
         String base64Credentials = Base64.getEncoder().encodeToString(authCredentials.getBytes());
-
         httpHeaders.set("Authorization", "Basic " + base64Credentials);
 
         MultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
@@ -61,9 +59,49 @@ public class SpotifyUserAuthService {
             logger.info(spotifyTokenResponse.getBody().getScope());
             logger.info(spotifyTokenResponse.getBody().getExpires_in().toString());
 
-            if (spotifyTokenResponse.getBody().getAccess_token() != null) {
+            if (spotifyTokenResponse.getBody() != null) {
                 logger.info("Spotify token fetched successfully. . .");
-                return spotifyTokenResponse.getBody().getAccess_token();
+                return spotifyTokenResponse.getBody();
+            } else {
+                logger.info("Null token received !");
+                throw new NullTokenException("Spotify");
+            }
+        } catch (RestClientException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+
+    public SpotifyTokenResponse refreshToken(String spotifyTokenUrl, HttpSession session){
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        //setting headers' content type
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
+        requestParams.add("grant_type", "refresh_token");
+        requestParams.add("refresh_token", (String) session.getAttribute("REFRESH_TOKEN"));
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(requestParams, httpHeaders);
+
+        try {
+            logger.info("Trying to fetch refreshed Spotify Token . . .");
+            ResponseEntity<SpotifyTokenResponse> spotifyTokenResponse = restTemplate.postForEntity(spotifyTokenUrl, request, SpotifyTokenResponse.class);
+            System.out.println("SpotifyToken :" + Objects.requireNonNull(spotifyTokenResponse.getBody()).getAccess_token());
+
+            logger.info(spotifyTokenResponse.getBody().toString());
+            logger.info(spotifyTokenResponse.getBody().getAccess_token());
+            logger.info(spotifyTokenResponse.getBody().getToken_type());
+            logger.info(spotifyTokenResponse.getBody().getRefresh_token());
+            logger.info(spotifyTokenResponse.getBody().getScope());
+            logger.info(spotifyTokenResponse.getBody().getExpires_in().toString());
+
+            if (spotifyTokenResponse.getBody() != null) {
+                logger.info("Spotify token fetched successfully. . .");
+                return spotifyTokenResponse.getBody();
             } else {
                 logger.info("Null token received !");
                 throw new NullTokenException("Spotify");

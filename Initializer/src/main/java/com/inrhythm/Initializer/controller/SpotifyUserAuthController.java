@@ -1,10 +1,13 @@
 package com.inrhythm.Initializer.controller;
 
 import com.inrhythm.Initializer.constants.ApiPathConstants;
+import com.inrhythm.Initializer.models.SpotifyTokenResponse;
 import com.inrhythm.Initializer.services.SpotifyUserAuthService;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.view.RedirectView;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -26,7 +30,8 @@ public class SpotifyUserAuthController {
     @Value("${spotify.tokenUrl}")
     private String spotifyTokenUrl;
 
-    public static final Logger logger = LoggerFactory.getLogger(SpotifyUserAuthService.class);
+    public final Logger logger = LoggerFactory.getLogger(SpotifyUserAuthService.class);
+
 
     //SPOTIFY_LOGIN=/login
     @GetMapping(value = ApiPathConstants.SPOTIFY_LOGIN, produces = MediaType.TEXT_HTML_VALUE)
@@ -42,8 +47,8 @@ public class SpotifyUserAuthController {
                                 "&client_id=" + spotifyClientId +
                                 "&scope=" + ApiPathConstants.SPOTIFY_USER_SCOPES +
                                 "&redirect_uri=" + ApiPathConstants.REDIRECT_URI +
-                                "&state=" + state +
-                                "&show_dialog=true";
+                                "&state=" + state;
+                                //+"&show_dialog=true";
 
         logger.info("SpotifyAuthUrl for this session : " + spotifyAuthUrl);
 
@@ -68,9 +73,20 @@ public class SpotifyUserAuthController {
         SpotifyUserAuthService spotifyUserAuthService = new SpotifyUserAuthService();
 
         try{
-            String accessToken = spotifyUserAuthService.getToken(spotifyClientId, spotifyClientSecret, spotifyTokenUrl, code);
-            session.setAttribute("ACCESS_TOKEN", accessToken);
+            SpotifyTokenResponse spotifyTokenResponse = spotifyUserAuthService.getToken(spotifyClientId, spotifyClientSecret, spotifyTokenUrl, code);
+
+            session.setAttribute("ACCESS_TOKEN", spotifyTokenResponse.getAccess_token());
             logger.info("Access token set to http session.");
+
+            session.setAttribute("TOKEN_RECEIVED_AT", Instant.now());
+            logger.info("Token received instant set to http session.");
+
+            session.setAttribute("EXPIRES_IN", spotifyTokenResponse.getExpires_in());
+            logger.info("Token expiration time set to http session.");
+
+            session.setAttribute("REFRESH_TOKEN", spotifyTokenResponse.getRefresh_token());
+            logger.info("Refresh token set to http session.");
+
         }catch (Exception exception){
 
             logger.error(Arrays.toString(exception.getStackTrace()));
@@ -82,6 +98,36 @@ public class SpotifyUserAuthController {
         //return "redirect:/success";
     }
 
+
+    @GetMapping("/refresh")
+    public String refreshToken(HttpSession session){
+        logger.info("Initiating a token refresh request from Spotify.");
+        SpotifyUserAuthService spotifyUserAuthService = new SpotifyUserAuthService();
+
+        try{
+            SpotifyTokenResponse spotifyTokenResponse = spotifyUserAuthService.refreshToken(spotifyTokenUrl,session);
+
+            session.setAttribute("ACCESS_TOKEN", spotifyTokenResponse.getAccess_token());
+            logger.info("Access token set to http session.");
+
+            session.setAttribute("TOKEN_RECEIVED_AT", Instant.now());
+            logger.info("Token received instant set to http session.");
+
+            session.setAttribute("EXPIRES_IN", spotifyTokenResponse.getExpires_in());
+            logger.info("Token expiration time set to http session.");
+
+            session.setAttribute("REFRESH_TOKEN", spotifyTokenResponse.getRefresh_token());
+            logger.info("Refresh token set to http session.");
+
+            return spotifyTokenResponse.getAccess_token();
+
+        }catch (Exception exception){
+
+            logger.error(Arrays.toString(exception.getStackTrace()));
+            throw exception;
+        }
+    }
+
     @GetMapping("/success")
     public String success() {
         return "success"; // Redirect to a success page
@@ -91,4 +137,6 @@ public class SpotifyUserAuthController {
     public String error() {
         return "error"; // Redirect to an error page
     }
+
+
 }
