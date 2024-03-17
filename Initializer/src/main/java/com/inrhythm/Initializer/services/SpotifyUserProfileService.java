@@ -20,9 +20,10 @@ public class SpotifyUserProfileService {
         HttpHeaders headers = new HttpHeaders();
 
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "Bearer" + accessToken);
+        headers.set("Authorization", "Bearer " + accessToken);
         HttpEntity<String> headerEntity = new HttpEntity<>(headers);
 
+        logger.info("Setting up http headers. Starting API call for profile details.");
         try{
             ResponseEntity<SpotifyUserProfile> profileResponseEntity = restTemplate.exchange(spotifyProfileUrl,
                     HttpMethod.GET, headerEntity, SpotifyUserProfile.class);

@@ -65,11 +65,12 @@ public class SpotifyUserAuthController {
         logger.info("User login permission granted.");
         logger.info("Initiating token access request from Spotify.");
 
-        SpotifyUserAuthService spotifyTokenAccessService = new SpotifyUserAuthService();
+        SpotifyUserAuthService spotifyUserAuthService = new SpotifyUserAuthService();
 
         try{
-            spotifyTokenAccessService.getToken(spotifyClientId, spotifyClientSecret, spotifyTokenUrl, code);
-            session.setAttribute("ACCESS_TOKEN", state);
+            String accessToken = spotifyUserAuthService.getToken(spotifyClientId, spotifyClientSecret, spotifyTokenUrl, code);
+            session.setAttribute("ACCESS_TOKEN", accessToken);
+            logger.info("Access token set to http session.");
         }catch (Exception exception){
 
             logger.error(Arrays.toString(exception.getStackTrace()));
@@ -77,7 +78,7 @@ public class SpotifyUserAuthController {
         }
 
         String profileUrl = "http://localhost:8080/profile";
-        return "Welcome! Login to Spotify : " + "<a href=\"" + profileUrl + "\">" + "Spotify" + "</a>";
+        return "Welcome! back to Home : " + "<a href=\"" + profileUrl + "\">" + "Home" + "</a>";
         //return "redirect:/success";
     }
 

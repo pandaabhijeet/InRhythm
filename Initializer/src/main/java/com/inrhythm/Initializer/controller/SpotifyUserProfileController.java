@@ -24,6 +24,7 @@ public class SpotifyUserProfileController {
     public SpotifyUserProfile getCurrentUserProfile(HttpSession session){
 
         String accessToken = (String) session.getAttribute("ACCESS_TOKEN");
+        logger.info("Getting access token from session : " + accessToken);
         String spotifyBaseUrl = ApiPathConstants.SPOTIFY_BASE_URL + "/me";
 
         logger.info("Initiating getCurrentUserProfile from controller");
