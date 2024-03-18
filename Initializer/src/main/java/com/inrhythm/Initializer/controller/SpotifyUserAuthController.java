@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,10 +31,11 @@ public class SpotifyUserAuthController {
     @Value("${spotify.tokenUrl}")
     private String spotifyTokenUrl;
 
-    public final Logger logger = LoggerFactory.getLogger(SpotifyUserAuthService.class);
+    public final Logger logger = LoggerFactory.getLogger(SpotifyUserAuthController.class);
 
 
     //SPOTIFY_LOGIN=/login
+    @Async
     @GetMapping(value = ApiPathConstants.SPOTIFY_LOGIN, produces = MediaType.TEXT_HTML_VALUE)
     public RedirectView redirectToSpotifyLogin(HttpSession session){
 
@@ -54,7 +56,7 @@ public class SpotifyUserAuthController {
 
         return new RedirectView(spotifyAuthUrl);
     }
-
+    @Async
     @GetMapping("/callback")
     public String callback(@RequestParam("code") String code, @RequestParam("state") String state, HttpSession session) {
 
@@ -99,6 +101,7 @@ public class SpotifyUserAuthController {
     }
 
 
+    @Async
     @GetMapping("/refresh")
     public String refreshToken(HttpSession session){
         logger.info("Initiating a token refresh request from Spotify.");

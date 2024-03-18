@@ -5,32 +5,39 @@ import com.inrhythm.Initializer.exceptions.UserProfileException;
 import com.inrhythm.Initializer.models.SpotifyUserProfile;
 import com.inrhythm.Initializer.services.SpotifyUserAuthService;
 import com.inrhythm.Initializer.services.SpotifyUserProfileService;
-import com.inrhythm.Initializer.utilities.SpotifyLoginRedirectHandler;
 import com.inrhythm.Initializer.utilities.SpotifyTokenCheckUtility;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.time.Instant;
 
 @RestController
+@Controller
 public class SpotifyUserProfileController {
     public static final Logger logger = LoggerFactory.getLogger(SpotifyUserAuthService.class);
     @Autowired
     private final SpotifyUserProfileService spotifyUserProfileService = new SpotifyUserProfileService();
     @Autowired
-    private final SpotifyUserAuthController spotifyUserAuthController = new SpotifyUserAuthController();
+    private final SpotifyUserAuthController spotifyUserAuthController;
+
+    private final SpotifyTokenCheckUtility tokenCheckUtility = new SpotifyTokenCheckUtility();
+
     @Autowired
-    private final SpotifyLoginRedirectHandler spotifyLoginRedirectHandler = new SpotifyLoginRedirectHandler();
-    private SpotifyTokenCheckUtility tokenCheckUtility;
+    public SpotifyUserProfileController(SpotifyUserAuthController spotifyUserAuthController) {
+        this.spotifyUserAuthController = spotifyUserAuthController;
+    }
 
     @GetMapping(value = ApiPathConstants.SPOTIFY_USER_PROFILE, produces = MediaType.TEXT_HTML_VALUE)
-    public SpotifyUserProfile getCurrentUserProfile(HttpSession session) {
+    public SpotifyUserProfile getCurrentUserProfile(HttpSession session, HttpServletResponse response) throws IOException {
 
         String accessToken = (String) session.getAttribute("ACCESS_TOKEN");
 
@@ -57,17 +64,27 @@ public class SpotifyUserProfileController {
 
         } else {
             logger.info("Spotify access token is not present. Redirecting to Auth controller");
-            spotifyLoginRedirectHandler.redirectToSpotifyLoginController();
+
+            try{
+            response.sendRedirect(ApiPathConstants.SPOTIFY_LOGIN);
+            logger.info("waiting for access token...");
+
+            Thread.sleep(7000);
+            }catch (Exception e){
+                logger.error(e.getMessage());
+            }
         }
 
         logger.info("Initiating getCurrentUserProfile from controller");
 
         try {
-            return spotifyUserProfileService.getCurrentUserProfile(spotifyBaseUrl, (String) session.getAttribute("ACCESS_TOKEN"));
+            return spotifyUserProfileService.getCurrentUserProfile(spotifyBaseUrl, accessToken);
         } catch (Exception exception) {
             logger.error(exception.getMessage());
-            throw new UserProfileException(exception.getMessage());
+            //throw new UserProfileException(exception.getMessage());
         }
+
+        return null;
     }
 }
 
