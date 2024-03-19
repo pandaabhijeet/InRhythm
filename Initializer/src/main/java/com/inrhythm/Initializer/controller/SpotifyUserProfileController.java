@@ -5,6 +5,7 @@ import com.inrhythm.Initializer.exceptions.UserProfileException;
 import com.inrhythm.Initializer.models.SpotifyUserProfile;
 import com.inrhythm.Initializer.services.SpotifyUserAuthService;
 import com.inrhythm.Initializer.services.SpotifyUserProfileService;
+import com.inrhythm.Initializer.utilities.SpotifyLoginRedirectHandler;
 import com.inrhythm.Initializer.utilities.SpotifyTokenCheckUtility;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -44,11 +45,11 @@ public class SpotifyUserProfileController {
         logger.info("Getting access token from session : " + accessToken);
         String spotifyBaseUrl = ApiPathConstants.SPOTIFY_BASE_URL + "/me";
 
-        /**This method will check if access token is null, if not present, it will redirect
+        /** This method will check if access token is null, if not present, it will redirect
          user to the spotify login page to get a new token.This will typically be used when
          browser was closed and session was lost.
          If the token is present, it will check for expiry, if expired, user will be redirected
-         to the refresh token method to get a fresh token using the old one**/
+         to the refresh token method to get a fresh token using the old one **/
 
 
         logger.info("Checking if token is null");
@@ -57,31 +58,25 @@ public class SpotifyUserProfileController {
             Instant tokenReceivedAt = (Instant) session.getAttribute("TOKEN_RECEIVED_AT");
             Long expiresIn = (Long) session.getAttribute("EXPIRES_IN");
 
-            if (tokenCheckUtility.isExpired(tokenReceivedAt,expiresIn)){
+            if (tokenCheckUtility.isExpired(tokenReceivedAt, expiresIn)) {
                 logger.info("Token not null but has expired. Redirecting to refresh token");
                 spotifyUserAuthController.refreshToken(session);
             }
 
+            logger.info("Initiating getCurrentUserProfile from controller");
+
+            try {
+                return spotifyUserProfileService.getCurrentUserProfile(spotifyBaseUrl, accessToken);
+            } catch (Exception exception) {
+                logger.error(exception.getMessage());
+                //throw new UserProfileException(exception.getMessage());
+            }
+
         } else {
             logger.info("Spotify access token is not present. Redirecting to Auth controller");
-
-            try{
             response.sendRedirect(ApiPathConstants.SPOTIFY_LOGIN);
+            session.setAttribute("REQUEST_SOURCE" , ApiPathConstants.SPOTIFY_USER_PROFILE);
             logger.info("waiting for access token...");
-
-            Thread.sleep(7000);
-            }catch (Exception e){
-                logger.error(e.getMessage());
-            }
-        }
-
-        logger.info("Initiating getCurrentUserProfile from controller");
-
-        try {
-            return spotifyUserProfileService.getCurrentUserProfile(spotifyBaseUrl, accessToken);
-        } catch (Exception exception) {
-            logger.error(exception.getMessage());
-            //throw new UserProfileException(exception.getMessage());
         }
 
         return null;

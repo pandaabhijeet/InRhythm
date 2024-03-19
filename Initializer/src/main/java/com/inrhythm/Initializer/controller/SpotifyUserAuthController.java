@@ -4,6 +4,7 @@ import com.inrhythm.Initializer.constants.ApiPathConstants;
 import com.inrhythm.Initializer.models.SpotifyTokenResponse;
 import com.inrhythm.Initializer.services.SpotifyUserAuthService;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.view.RedirectView;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.UUID;
@@ -58,14 +60,15 @@ public class SpotifyUserAuthController {
     }
     @Async
     @GetMapping("/callback")
-    public String callback(@RequestParam("code") String code, @RequestParam("state") String state, HttpSession session) {
+    public String callback(@RequestParam("code") String code, @RequestParam("state") String state, HttpSession session,
+                           HttpServletResponse response) throws IOException {
 
         logger.info("Handling Spotify callback now");
         String sessionState = (String) session.getAttribute("SPOTIFY_STATE");
         if (!state.equals(sessionState)) {
 
             logger.error("Session State mismatch : " + sessionState);
-            return "redirect:/error";
+            response.sendRedirect("http://localhost:8080/token-error");
 
         }
 
@@ -95,9 +98,11 @@ public class SpotifyUserAuthController {
             throw exception;
         }
 
-        String profileUrl = "http://localhost:8080/profile";
-        return "Welcome! back to Home : " + "<a href=\"" + profileUrl + "\">" + "Home" + "</a>";
-        //return "redirect:/success";
+        //String profileUrl = "http://localhost:8080/profile";
+        //return "Welcome! back to Home : " + "<a href=\"" + profileUrl + "\">" + "Home" + "</a>";
+
+        response.sendRedirect(ApiPathConstants.SPOTIFY_TOKEN_SUCCESS);
+        return "redirect:/success";
     }
 
 
@@ -131,13 +136,18 @@ public class SpotifyUserAuthController {
         }
     }
 
-    @GetMapping("/success")
-    public String success() {
-        return "success"; // Redirect to a success page
+    @GetMapping("/token-success")
+    public String success(HttpSession session, HttpServletResponse response) throws IOException {
+        logger.info("Redirecting to the source page of token request.");
+        response.sendRedirect((String) session.getAttribute("REQUEST_SOURCE"));
+
+        return  "success";
     }
 
-    @GetMapping("/error")
+    @GetMapping("/token-error")
     public String error() {
+
+        logger.info("Redirecting to the error page.");
         return "error"; // Redirect to an error page
     }
 
