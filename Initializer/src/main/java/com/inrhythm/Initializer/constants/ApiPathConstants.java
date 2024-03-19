@@ -9,4 +9,6 @@ public class ApiPathConstants {
     public static final String  SPOTIFY_USER_PROFILE = "/profile";
     public static final String  SPOTIFY_BASE_URL = "https://api.spotify.com/v1";
     public static final String  SPOTIFY_TOKEN_SUCCESS = "/token-success";
+    public static final String  SPOTIFY_TOKEN_ERROR = "/token-error";
+    public static final String  SPOTIFY_TOKEN_REFRESH = "/token-refresh";
 }

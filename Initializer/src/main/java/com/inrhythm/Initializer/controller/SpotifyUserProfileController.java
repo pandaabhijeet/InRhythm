@@ -60,7 +60,7 @@ public class SpotifyUserProfileController {
 
             if (tokenCheckUtility.isExpired(tokenReceivedAt, expiresIn)) {
                 logger.info("Token not null but has expired. Redirecting to refresh token");
-                spotifyUserAuthController.refreshToken(session);
+                response.sendRedirect(ApiPathConstants.SPOTIFY_TOKEN_REFRESH);
             }
 
             logger.info("Initiating getCurrentUserProfile from controller");

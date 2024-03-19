@@ -73,7 +73,7 @@ public class SpotifyUserAuthService {
     }
 
 
-    public SpotifyTokenResponse refreshToken(String spotifyTokenUrl, HttpSession session){
+    public SpotifyTokenResponse refreshToken(String spotifyTokenUrl,String spotifyClientId, HttpSession session){
 
         RestTemplate restTemplate = new RestTemplate();
 
@@ -84,6 +84,7 @@ public class SpotifyUserAuthService {
         MultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
         requestParams.add("grant_type", "refresh_token");
         requestParams.add("refresh_token", (String) session.getAttribute("REFRESH_TOKEN"));
+        requestParams.add("client_id", spotifyClientId);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(requestParams, httpHeaders);
 
