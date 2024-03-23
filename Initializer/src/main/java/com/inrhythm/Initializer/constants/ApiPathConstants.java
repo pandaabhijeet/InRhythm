@@ -11,4 +11,5 @@ public class ApiPathConstants {
     public static final String  SPOTIFY_TOKEN_SUCCESS = "/token-success";
     public static final String  SPOTIFY_TOKEN_ERROR = "/token-error";
     public static final String  SPOTIFY_TOKEN_REFRESH = "/token-refresh";
+    public static final String  SPOTIFY_CUR_USER_PLAYLIST = "/get-cur-user-playlists";
 }
