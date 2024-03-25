@@ -31,6 +31,7 @@ public class SpotifyCurrentUserPlayListController {
     public void getCurrUserPlayList(HttpSession session, HttpServletResponse response) {
 
         String accessToken = (String) session.getAttribute("ACCESS_TOKEN");
+        String spotifyBaseUrl = ApiPathConstants.SPOTIFY_BASE_URL + "/me/playlists";
 
         logger.info("Getting access token from session : " + accessToken);
 
@@ -54,7 +55,7 @@ public class SpotifyCurrentUserPlayListController {
             logger.info("Initiating getCurrentUserProfile from controller");
 
             try {
-                //return currentUserPlaylistService.getCurrentUserProfile(spotifyBaseUrl, accessToken);
+                currentUserPlaylistService.getSpotifyUserPlayList(spotifyBaseUrl, accessToken);
             } catch (Exception exception) {
                 logger.error(exception.getMessage());
                 //throw new UserProfileException(exception.getMessage());
@@ -63,7 +64,7 @@ public class SpotifyCurrentUserPlayListController {
         } else {
             logger.info("Spotify access token is not present. Redirecting to Auth controller");
             try {
-                response.sendRedirect(ApiPathConstants.SPOTIFY_TOKEN_REFRESH);
+                response.sendRedirect(ApiPathConstants.SPOTIFY_LOGIN);
             } catch (IOException e) {
                 logger.error(e.getMessage());
             }

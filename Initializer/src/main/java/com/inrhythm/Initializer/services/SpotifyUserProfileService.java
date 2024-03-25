@@ -41,7 +41,7 @@ public class SpotifyUserProfileService {
             }
         }catch(Exception exception){
             logger.error(exception.getMessage());
-            return null;
+            throw exception;
         }
 
     }
