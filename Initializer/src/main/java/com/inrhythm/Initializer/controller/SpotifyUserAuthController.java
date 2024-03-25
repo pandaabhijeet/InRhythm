@@ -114,7 +114,7 @@ public class SpotifyUserAuthController {
         SpotifyUserAuthService spotifyUserAuthService = new SpotifyUserAuthService();
 
         try {
-            SpotifyTokenResponse spotifyTokenResponse = spotifyUserAuthService.refreshToken(spotifyTokenUrl,spotifyClientId,session);
+            SpotifyTokenResponse spotifyTokenResponse = spotifyUserAuthService.refreshToken(spotifyTokenUrl,spotifyClientId,spotifyClientSecret,session);
 
             session.setAttribute("ACCESS_TOKEN", spotifyTokenResponse.getAccess_token());
             logger.info("Access token set to http session.");
@@ -140,7 +140,7 @@ public class SpotifyUserAuthController {
 
         } catch (Exception exception) {
             logger.error(Arrays.toString(exception.getStackTrace()));
-            throw exception;
+            return "redirect:/error";
         }
     }
 
