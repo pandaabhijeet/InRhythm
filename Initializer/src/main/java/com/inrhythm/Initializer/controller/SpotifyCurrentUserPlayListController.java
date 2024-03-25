@@ -1,7 +1,6 @@
 package com.inrhythm.Initializer.controller;
-
-
 import com.inrhythm.Initializer.constants.ApiPathConstants;
+import com.inrhythm.Initializer.exceptions.TokenExpiredException;
 import com.inrhythm.Initializer.services.SpotifyCurrentUserPlaylistService;
 import com.inrhythm.Initializer.services.SpotifyUserAuthService;
 import com.inrhythm.Initializer.utilities.SpotifyTokenCheckUtility;
@@ -16,6 +15,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.time.Instant;
+
+
+/**This class has a method - getCurrUserPlayList that first checks if the token is null, if null, it will redirect the user to Spotify login page.
+ * if token is not null, it will further invoke token check utility to check if token has expired. If the
+ * token is found ot be expired, it will redirect the user back to refresh token page to get new spotify token.
+ * If token is not expired, then only it will proceed to invoke SpotifyCurrentUserPlaylistService
+ *
+ * @author Abhijeet Panda 25-03-24**/
 
 @RestController
 public class SpotifyCurrentUserPlayListController {
@@ -46,30 +53,37 @@ public class SpotifyCurrentUserPlayListController {
 
                 try {
                     response.sendRedirect(ApiPathConstants.SPOTIFY_TOKEN_REFRESH);
-                } catch (IOException e) {
+                    session.setAttribute("REQUEST_SOURCE", ApiPathConstants.SPOTIFY_CUR_USER_PLAYLIST);
+                    logger.info("waiting for access token...");
+                    throw new TokenExpiredException();
+                } catch (TokenExpiredException | IOException e) {
                     logger.error(e.getMessage());
                 }
 
-            }
+            } else {
+                logger.info("Token not null or expired.");
+                logger.info("Initiating get current user playlist service from controller");
 
-            logger.info("Initiating getCurrentUserProfile from controller");
-
-            try {
-                currentUserPlaylistService.getSpotifyUserPlayList(spotifyBaseUrl, accessToken);
-            } catch (Exception exception) {
-                logger.error(exception.getMessage());
-                //throw new UserProfileException(exception.getMessage());
+                try {
+                    currentUserPlaylistService.getSpotifyUserPlayList(spotifyBaseUrl, accessToken);
+                } catch (Exception exception) {
+                    logger.error(exception.getMessage());
+                    //throw new UserProfileException(exception.getMessage());
+                }
             }
 
         } else {
             logger.info("Spotify access token is not present. Redirecting to Auth controller");
             try {
                 response.sendRedirect(ApiPathConstants.SPOTIFY_LOGIN);
-            } catch (IOException e) {
+                session.setAttribute("REQUEST_SOURCE", ApiPathConstants.SPOTIFY_CUR_USER_PLAYLIST);
+                logger.info("waiting for access token...");
+                throw new TokenExpiredException();
+
+            } catch (TokenExpiredException | IOException e) {
                 logger.error(e.getMessage());
             }
-            session.setAttribute("REQUEST_SOURCE", ApiPathConstants.SPOTIFY_CUR_USER_PLAYLIST);
-            logger.info("waiting for access token...");
         }
+
     }
 }

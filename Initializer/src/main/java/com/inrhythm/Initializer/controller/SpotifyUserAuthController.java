@@ -79,9 +79,6 @@ public class SpotifyUserAuthController {
         try {
             SpotifyTokenResponse spotifyTokenResponse = spotifyUserAuthService.getToken(spotifyClientId, spotifyClientSecret, spotifyTokenUrl, code);
 
-            session.setAttribute("ACCESS_TOKEN", spotifyTokenResponse.getAccess_token());
-            logger.info("Access token set to http session.");
-
             session.setAttribute("TOKEN_RECEIVED_AT", Instant.now());
             logger.info("Token received instant set to http session.");
 
@@ -90,17 +87,27 @@ public class SpotifyUserAuthController {
             session.setAttribute("EXPIRES_IN", exp.longValue());
             logger.info("Token expiration time set to http session.");
 
-            session.setAttribute("REFRESH_TOKEN", spotifyTokenResponse.getRefresh_token());
-            logger.info("Refresh token set to http session.");
+            if (spotifyTokenResponse.getRefresh_token() != null) {
+                session.setAttribute("REFRESH_TOKEN", spotifyTokenResponse.getRefresh_token());
+                logger.info("Refresh token set to http session.");
+            }
+
+            if (spotifyTokenResponse.getAccess_token() != null) {
+
+                session.setAttribute("ACCESS_TOKEN", spotifyTokenResponse.getAccess_token());
+                logger.info("Access token set to http session.");
+                response.sendRedirect(ApiPathConstants.SPOTIFY_TOKEN_SUCCESS);
+                return "redirect:/success";
+
+            } else {
+                response.sendRedirect(ApiPathConstants.SPOTIFY_TOKEN_ERROR);
+            }
 
         } catch (Exception exception) {
 
             logger.error(Arrays.toString(exception.getStackTrace()));
             throw exception;
         }
-
-        //String profileUrl = "http://localhost:8080/profile";
-        //return "Welcome! back to Home : " + "<a href=\"" + profileUrl + "\">" + "Home" + "</a>";
 
         response.sendRedirect(ApiPathConstants.SPOTIFY_TOKEN_SUCCESS);
         return "redirect:/success";
@@ -114,10 +121,7 @@ public class SpotifyUserAuthController {
         SpotifyUserAuthService spotifyUserAuthService = new SpotifyUserAuthService();
 
         try {
-            SpotifyTokenResponse spotifyTokenResponse = spotifyUserAuthService.refreshToken(spotifyTokenUrl,spotifyClientId,session);
-
-            session.setAttribute("ACCESS_TOKEN", spotifyTokenResponse.getAccess_token());
-            logger.info("Access token set to http session.");
+            SpotifyTokenResponse spotifyTokenResponse = spotifyUserAuthService.refreshToken(spotifyTokenUrl, spotifyClientId, spotifyClientSecret, session);
 
             session.setAttribute("TOKEN_RECEIVED_AT", Instant.now());
             logger.info("Token received instant set to http session.");
@@ -127,10 +131,14 @@ public class SpotifyUserAuthController {
             session.setAttribute("EXPIRES_IN", exp.longValue());
             logger.info("Token expiration time set to http session.");
 
-            session.setAttribute("REFRESH_TOKEN", spotifyTokenResponse.getRefresh_token());
-            logger.info("Refresh token set to http session.");
+            if (spotifyTokenResponse.getRefresh_token() != null) {
+                session.setAttribute("REFRESH_TOKEN", spotifyTokenResponse.getRefresh_token());
+                logger.info("Refresh token set to http session.");
+            }
 
             if (spotifyTokenResponse.getAccess_token() != null) {
+                session.setAttribute("ACCESS_TOKEN", spotifyTokenResponse.getAccess_token());
+                logger.info("Access token set to http session.");
                 response.sendRedirect(ApiPathConstants.SPOTIFY_TOKEN_SUCCESS);
             } else {
                 response.sendRedirect(ApiPathConstants.SPOTIFY_TOKEN_ERROR);
@@ -140,7 +148,7 @@ public class SpotifyUserAuthController {
 
         } catch (Exception exception) {
             logger.error(Arrays.toString(exception.getStackTrace()));
-            throw exception;
+            return "redirect:/error";
         }
     }
 

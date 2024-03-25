@@ -7,10 +7,7 @@ import com.inrhythm.Initializer.models.SpotifyTokenResponse;
 import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -73,7 +70,7 @@ public class SpotifyUserAuthService {
     }
 
 
-    public SpotifyTokenResponse refreshToken(String spotifyTokenUrl,String spotifyClientId, HttpSession session){
+    public SpotifyTokenResponse refreshToken(String spotifyTokenUrl,String spotifyClientId, String spotifyClientSecret, HttpSession session){
 
         RestTemplate restTemplate = new RestTemplate();
 
@@ -81,16 +78,25 @@ public class SpotifyUserAuthService {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
+        String authCredentials = spotifyClientId + ":" + spotifyClientSecret;
+        String base64Credentials = Base64.getEncoder().encodeToString(authCredentials.getBytes());
+
+        logger.info("base64creds: " + base64Credentials);
+        httpHeaders.set("Authorization", "Basic " + base64Credentials); //there should be space after "Basic"
+
         MultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
         requestParams.add("grant_type", "refresh_token");
         requestParams.add("refresh_token", (String) session.getAttribute("REFRESH_TOKEN"));
-        requestParams.add("client_id", spotifyClientId);
+        //requestParams.add("client_id", spotifyClientId);
+
+        logger.info("Refresh Token : " + (String) session.getAttribute("REFRESH_TOKEN"));
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(requestParams, httpHeaders);
 
         try {
             logger.info("Trying to fetch refreshed Spotify Token . . .");
-            ResponseEntity<SpotifyTokenResponse> spotifyTokenResponse = restTemplate.postForEntity(spotifyTokenUrl, request, SpotifyTokenResponse.class);
+            ResponseEntity<SpotifyTokenResponse> spotifyTokenResponse = restTemplate.postForEntity(spotifyTokenUrl,
+                    request,SpotifyTokenResponse.class);
             System.out.println("SpotifyToken :" + Objects.requireNonNull(spotifyTokenResponse.getBody()).getAccess_token());
 
             logger.info(spotifyTokenResponse.getBody().toString());
@@ -101,14 +107,15 @@ public class SpotifyUserAuthService {
             logger.info(spotifyTokenResponse.getBody().getExpires_in().toString());
 
             if (spotifyTokenResponse.getBody() != null) {
-                logger.info("Spotify token fetched successfully. . .");
+                logger.info("Spotify Refresh token fetched successfully. . .");
                 return spotifyTokenResponse.getBody();
             } else {
                 logger.info("Null token received !");
                 throw new NullTokenException("Spotify");
             }
-        } catch (RestClientException e) {
-            throw new RuntimeException(e);
+        } catch (NullTokenException | RestClientException e) {
+            logger.info(e.getMessage());
+            return null;
         }
 
     }
